@@ -1,4 +1,6 @@
 package com.makotovh.medianow.model;
 
-public record Plan(String name, long id) {
+import org.springframework.data.annotation.Id;
+
+public record Plan(String name, @Id long id) {
 }

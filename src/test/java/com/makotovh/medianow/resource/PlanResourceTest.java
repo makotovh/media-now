@@ -1,7 +1,6 @@
 package com.makotovh.medianow.resource;
 
 import com.makotovh.medianow.model.Plan;
-import com.makotovh.medianow.model.PlanEntity;
 import com.makotovh.medianow.model.PlanRequest;
 import com.makotovh.medianow.repository.PlanRepository;
 import com.makotovh.medianow.service.PlanService;
@@ -36,10 +35,10 @@ class PlanResourceTest {
     void addPlan() {
         String PlanName = "testPlan";
         PlanRequest PlanRequest = new PlanRequest(PlanName);
-        PlanEntity PlanEntity = new PlanEntity(PlanName, 1);
+        Plan PlanEntity = new Plan(PlanName, 1);
         Plan expectedPlan = new Plan(PlanName, 1);
 
-        when(PlanRepository.save(new PlanEntity(PlanName, 0))).thenReturn(Mono.just(PlanEntity));
+        when(PlanRepository.save(new Plan(PlanName, 0))).thenReturn(Mono.just(PlanEntity));
 
         webTestClient.post()
                 .uri("/plans")
@@ -65,7 +64,7 @@ class PlanResourceTest {
         String PlanName = "testPlan";
         Plan expectedPlan = new Plan(PlanName, 1);
 
-        when(PlanRepository.findById(1l)).thenReturn(Mono.just(new PlanEntity(PlanName, 1)));
+        when(PlanRepository.findById(1l)).thenReturn(Mono.just(new Plan(PlanName, 1)));
 
         webTestClient.get()
                 .uri("/plans/1")
@@ -89,7 +88,7 @@ class PlanResourceTest {
     void updatePlan() {
         String PlanName = "testPlan";
         PlanRequest PlanRequest = new PlanRequest(PlanName);
-        PlanEntity PlanEntity = new PlanEntity(PlanName, 1);
+        Plan PlanEntity = new Plan(PlanName, 1);
         Plan expectedPlan = new Plan(PlanName, 1);
 
         when(PlanRepository.findById(1l)).thenReturn(Mono.just(PlanEntity));
@@ -117,7 +116,7 @@ class PlanResourceTest {
 
     @Test
     void deletePlan() {
-        PlanEntity testPlan = new PlanEntity("testPlan", 1);
+        Plan testPlan = new Plan("testPlan", 1);
         when(PlanRepository.findById(1l)).thenReturn(Mono.just(testPlan));
         when(PlanRepository.delete(testPlan)).thenReturn(Mono.empty());
         webTestClient.delete()
@@ -138,11 +137,11 @@ class PlanResourceTest {
     @Test
     void listPlans() {
         String PlanName = "testPlan";
-        PlanEntity PlanEntity = new PlanEntity(PlanName, 1);
+        Plan plan = new Plan(PlanName, 1);
         Plan expectedPlan = new Plan(PlanName, 1);
-        List<PlanEntity> PlanEntities = new ArrayList<>();
-        PlanEntities.add(PlanEntity);
-        when(PlanRepository.findAll()).thenReturn(Flux.fromIterable(PlanEntities));
+        List<Plan> plans = new ArrayList<>();
+        plans.add(plan);
+        when(PlanRepository.findAll()).thenReturn(Flux.fromIterable(plans));
 
         webTestClient.get()
                 .uri("/plans")
