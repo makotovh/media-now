@@ -26,23 +26,24 @@ import static org.mockito.Mockito.when;
 class PlanResourceTest {
 
     @MockBean
-    private PlanRepository PlanRepository;
+    private PlanRepository planRepository;
 
     @Autowired
     private WebTestClient webTestClient;
 
     @Test
     void addPlan() {
-        String PlanName = "testPlan";
-        PlanRequest PlanRequest = new PlanRequest(PlanName);
-        Plan PlanEntity = new Plan(PlanName, 1);
-        Plan expectedPlan = new Plan(PlanName, 1);
+        var planName = "testPlan";
+        var planDescription = "testDescription";
+        PlanRequest planRequest = new PlanRequest(planName, planDescription);
+        Plan planEntity = new Plan(1, planName, planDescription);
+        Plan expectedPlan = new Plan(1, planName, planDescription);
 
-        when(PlanRepository.save(new Plan(PlanName, 0))).thenReturn(Mono.just(PlanEntity));
+        when(planRepository.save(new Plan(0, planName, planDescription))).thenReturn(Mono.just(planEntity));
 
         webTestClient.post()
                 .uri("/plans")
-                .bodyValue(PlanRequest)
+                .bodyValue(planRequest)
                 .exchange()
                 .expectStatus().isCreated()
                 .expectBody(Plan.class)
@@ -51,20 +52,21 @@ class PlanResourceTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"", " ", "  "})
-    void shouldValidatePlan(String PlanName) {
+    void shouldValidatePlan(String planName) {
         webTestClient.post()
                 .uri("/plans")
-                .bodyValue(new PlanRequest(PlanName))
+                .bodyValue(new PlanRequest(planName, "testDescription"))
                 .exchange()
                 .expectStatus().isBadRequest();
     }
 
     @Test
     void getPlan() {
-        String PlanName = "testPlan";
-        Plan expectedPlan = new Plan(PlanName, 1);
+        String planName = "testPlan";
+        String planDescription = "testDescription";
+        Plan expectedPlan = new Plan(1, planName, planDescription);
 
-        when(PlanRepository.findById(1L)).thenReturn(Mono.just(new Plan(PlanName, 1)));
+        when(planRepository.findById(1L)).thenReturn(Mono.just(new Plan(1, planName, planDescription)));
 
         webTestClient.get()
                 .uri("/plans/1")
@@ -76,7 +78,7 @@ class PlanResourceTest {
 
     @Test
     void getPlanNotFound() {
-        when(PlanRepository.findById(1L)).thenReturn(Mono.empty());
+        when(planRepository.findById(1L)).thenReturn(Mono.empty());
 
         webTestClient.get()
                 .uri("/plans/1")
@@ -86,17 +88,18 @@ class PlanResourceTest {
 
     @Test
     void updatePlan() {
-        String PlanName = "testPlan";
-        PlanRequest PlanRequest = new PlanRequest(PlanName);
-        Plan PlanEntity = new Plan(PlanName, 1);
-        Plan expectedPlan = new Plan(PlanName, 1);
+        String planName = "testPlan";
+        String planDescription = "testDescription";
+        PlanRequest planRequest = new PlanRequest(planName, planDescription);
+        Plan planEntity = new Plan(1, planName, planDescription);
+        Plan expectedPlan = new Plan(1, planName, planDescription);
 
-        when(PlanRepository.findById(1L)).thenReturn(Mono.just(PlanEntity));
-        when(PlanRepository.save(PlanEntity)).thenReturn(Mono.just(PlanEntity));
+        when(planRepository.findById(1L)).thenReturn(Mono.just(planEntity));
+        when(planRepository.save(planEntity)).thenReturn(Mono.just(planEntity));
 
         webTestClient.put()
                 .uri("/plans/1")
-                .bodyValue(PlanRequest)
+                .bodyValue(planRequest)
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody(Plan.class)
@@ -105,20 +108,20 @@ class PlanResourceTest {
 
     @Test
     void updatePlanNotFound() {
-        when(PlanRepository.findById(1L)).thenReturn(Mono.empty());
+        when(planRepository.findById(1L)).thenReturn(Mono.empty());
 
         webTestClient.put()
                 .uri("/plans/1")
-                .bodyValue(new PlanRequest("testPlan"))
+                .bodyValue(new PlanRequest("testPlan", "testDescription"))
                 .exchange()
                 .expectStatus().isNotFound();
     }
 
     @Test
     void deletePlan() {
-        Plan testPlan = new Plan("testPlan", 1);
-        when(PlanRepository.findById(1L)).thenReturn(Mono.just(testPlan));
-        when(PlanRepository.delete(testPlan)).thenReturn(Mono.empty());
+        Plan testPlan = new Plan(1,"testPlan", "testDescription");
+        when(planRepository.findById(1L)).thenReturn(Mono.just(testPlan));
+        when(planRepository.delete(testPlan)).thenReturn(Mono.empty());
         webTestClient.delete()
                 .uri("/plans/1")
                 .exchange()
@@ -127,7 +130,7 @@ class PlanResourceTest {
 
     @Test
     void deletePlanNotFound() {
-        when(PlanRepository.findById(1L)).thenReturn(Mono.empty());
+        when(planRepository.findById(1L)).thenReturn(Mono.empty());
         webTestClient.delete()
                 .uri("/plans/1")
                 .exchange()
@@ -136,12 +139,13 @@ class PlanResourceTest {
 
     @Test
     void listPlans() {
-        String PlanName = "testPlan";
-        Plan plan = new Plan(PlanName, 1);
-        Plan expectedPlan = new Plan(PlanName, 1);
+        String planName = "testPlan";
+        String planDescription = "testDescription";
+        Plan plan = new Plan(1, planName, planDescription);
+        Plan expectedPlan = new Plan(1, planName, planDescription);
         List<Plan> plans = new ArrayList<>();
         plans.add(plan);
-        when(PlanRepository.findAll()).thenReturn(Flux.fromIterable(plans));
+        when(planRepository.findAll()).thenReturn(Flux.fromIterable(plans));
 
         webTestClient.get()
                 .uri("/plans")

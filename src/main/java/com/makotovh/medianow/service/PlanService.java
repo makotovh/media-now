@@ -15,8 +15,7 @@ public class PlanService {
     private final PlanRepository PlanRepository;
 
     public Mono<Plan> createPlan(PlanRequest newPlan) {
-        return PlanRepository.save(new Plan(newPlan.name(), 0))
-                .map(PlanEntity -> new Plan(PlanEntity.name(), PlanEntity.id()));
+        return PlanRepository.save(new Plan(0, newPlan.name(), newPlan.description()));
     }
 
     public Mono<Plan> get(long id) {
@@ -24,10 +23,10 @@ public class PlanService {
                 .switchIfEmpty(Mono.error(new PlanNotFoundException(id)));
     }
 
-    public Mono<Plan> update(long id, PlanRequest PlanToUpdate) {
+    public Mono<Plan> update(long id, PlanRequest planToUpdate) {
         return PlanRepository.findById(id)
                 .switchIfEmpty(Mono.error(new PlanNotFoundException(id)))
-                .map(PlanEntity -> new Plan(PlanToUpdate.name(), PlanEntity.id()))
+                .map(planEntity -> new Plan(planEntity.id(), planToUpdate.name(), planToUpdate.description()))
                 .flatMap(PlanRepository::save);
     }
 

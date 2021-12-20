@@ -17,31 +17,31 @@ import static org.springframework.http.HttpStatus.CREATED;
 @AllArgsConstructor
 public class PlanResource {
 
-    private final PlanService PlanService;
+    private final PlanService planService;
 
     @PostMapping
     @ResponseStatus(CREATED)
-    public Mono<Plan> createPlan(@RequestBody @Valid PlanRequest PlanToCreate) {
-        return PlanService.createPlan(PlanToCreate);
+    public Mono<Plan> createPlan(@RequestBody @Valid PlanRequest planToCreate) {
+        return planService.createPlan(planToCreate);
     }
 
     @GetMapping("/{id}")
     public Mono<Plan> getPlan(@PathVariable long id) {
-        return PlanService.get(id);
+        return planService.get(id);
     }
 
     @PutMapping("/{id}")
     public Mono<Plan> updatePlan(@PathVariable long id, @RequestBody @Valid PlanRequest PlanToUpdate) {
-        return PlanService.update(id, PlanToUpdate);
+        return planService.update(id, PlanToUpdate);
     }
 
     @DeleteMapping("/{id}")
     public Mono<Void> deletePlan(@PathVariable long id) {
-        return PlanService.delete(id);
+        return planService.delete(id);
     }
 
     @GetMapping
     public Flux<Plan> getPlans() {
-        return PlanService.getAll();
+        return planService.getAll();
     }
 }
