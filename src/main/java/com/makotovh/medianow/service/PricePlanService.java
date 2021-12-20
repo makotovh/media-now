@@ -1,5 +1,6 @@
 package com.makotovh.medianow.service;
 
+import com.makotovh.medianow.exception.PricePlanNotFoundException;
 import com.makotovh.medianow.model.PricePlan;
 import com.makotovh.medianow.model.PricePlanRequest;
 import com.makotovh.medianow.repository.PricePlanRepository;
@@ -29,5 +30,10 @@ public class PricePlanService {
         startDate,
         null);
     return pricePlanRepository.save(pricePlan);
+  }
+
+  public Mono<PricePlan> getPricePlan(Long id) {
+    return pricePlanRepository.findById(id)
+            .switchIfEmpty(Mono.error(new PricePlanNotFoundException(id)));
   }
 }

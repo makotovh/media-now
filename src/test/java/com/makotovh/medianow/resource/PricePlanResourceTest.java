@@ -133,4 +133,34 @@ class PricePlanResourceTest {
         .expectStatus()
         .isBadRequest();
   }
+
+  @Test
+  void testGetPricePlan() {
+    var name = "Premium";
+    var description = "Premium plan";
+    var price = new BigDecimal("100.00");
+    var startDate = LocalDate.now();
+    var countryCode = "SE";
+    var pricePlan = new PricePlan(1, name, description, countryCode, price, startDate, null);
+
+    when(pricePlanRepository.findById(1L)).thenReturn(Mono.just(pricePlan));
+    webTestClient
+        .get()
+        .uri("/price-plans/1")
+        .exchange()
+        .expectStatus()
+        .isOk()
+        .expectBody(PricePlan.class);
+  }
+
+  @Test
+  void testGetPricePlanNotFound() {
+    when(pricePlanRepository.findById(1L)).thenReturn(Mono.empty());
+    webTestClient
+        .get()
+        .uri("/price-plans/1")
+        .exchange()
+        .expectStatus()
+        .isNotFound();
+  }
 }

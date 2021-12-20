@@ -23,4 +23,9 @@ public class PricePlanResource {
     public Mono<PricePlan> createPricePlan(@RequestBody @Valid PricePlanRequest request) {
         return pricePlanService.createPricePlan(request);
     }
+
+    @GetMapping("/{id}")
+    public Mono<PricePlan> getPricePlan(@PathVariable("id") long id) {
+        return pricePlanService.getPricePlan(id);
+    }
 }
