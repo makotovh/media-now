@@ -15,7 +15,7 @@ import static org.springframework.http.HttpStatus.CREATED;
 @RestController
 @RequestMapping("/packages")
 @AllArgsConstructor
-public class PackageController {
+public class PackageResource {
 
     private final PackageService packageService;
 

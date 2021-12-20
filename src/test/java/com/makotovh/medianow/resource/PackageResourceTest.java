@@ -22,9 +22,9 @@ import java.util.List;
 
 import static org.mockito.Mockito.when;
 
-@WebFluxTest(PackageController.class)
+@WebFluxTest(PackageResource.class)
 @Import({PackageService.class})
-class PackageControllerTest {
+class PackageResourceTest {
 
     @MockBean
     private PackageRepository packageRepository;
