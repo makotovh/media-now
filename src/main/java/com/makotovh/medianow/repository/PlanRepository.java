@@ -1,9 +1,9 @@
 package com.makotovh.medianow.repository;
 
-import com.makotovh.medianow.model.PackageEntity;
+import com.makotovh.medianow.model.PlanEntity;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface PackageRepository extends ReactiveCrudRepository<PackageEntity, Long> {
+public interface PlanRepository extends ReactiveCrudRepository<PlanEntity, Long> {
 }

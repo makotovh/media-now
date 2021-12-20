@@ -16,7 +16,7 @@ public class MediaNowApplication {
 
 		var client = DatabaseClient.create(connectionFactory);
 
-		client.sql("CREATE TABLE package" +
+		client.sql("CREATE TABLE Plan" +
 						"(id bigint auto_increment primary key," +
 						"name VARCHAR(255))")
 				.fetch()
