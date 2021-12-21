@@ -25,19 +25,19 @@ public class PlanResource {
         return planService.createPlan(planToCreate);
     }
 
-    @GetMapping("/{id}")
-    public Mono<Plan> getPlan(@PathVariable long id) {
-        return planService.get(id);
+    @GetMapping("/{code}")
+    public Mono<Plan> getPlan(@PathVariable String code) {
+        return planService.get(code);
     }
 
-    @PutMapping("/{id}")
-    public Mono<Plan> updatePlan(@PathVariable long id, @RequestBody @Valid PlanRequest PlanToUpdate) {
-        return planService.update(id, PlanToUpdate);
+    @PutMapping("/{code}")
+    public Mono<Plan> updatePlan(@PathVariable String code, @RequestBody @Valid PlanRequest PlanToUpdate) {
+        return planService.update(code, PlanToUpdate);
     }
 
-    @DeleteMapping("/{id}")
-    public Mono<Void> deletePlan(@PathVariable long id) {
-        return planService.delete(id);
+    @DeleteMapping("/{code}")
+    public Mono<Void> deletePlan(@PathVariable String code) {
+        return planService.delete(code);
     }
 
     @GetMapping

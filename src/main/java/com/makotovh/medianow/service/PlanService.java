@@ -15,24 +15,24 @@ public class PlanService {
     private final PlanRepository PlanRepository;
 
     public Mono<Plan> createPlan(PlanRequest newPlan) {
-        return PlanRepository.save(new Plan(0, newPlan.name(), newPlan.description()));
+    return PlanRepository.save(new Plan(newPlan.code(), newPlan.name(), newPlan.description()));
     }
 
-    public Mono<Plan> get(long id) {
-        return PlanRepository.findById(id)
-                .switchIfEmpty(Mono.error(new PlanNotFoundException(id)));
+    public Mono<Plan> get(String code) {
+        return PlanRepository.findById(code)
+                .switchIfEmpty(Mono.error(new PlanNotFoundException(code)));
     }
 
-    public Mono<Plan> update(long id, PlanRequest planToUpdate) {
-        return PlanRepository.findById(id)
-                .switchIfEmpty(Mono.error(new PlanNotFoundException(id)))
-                .map(planEntity -> new Plan(planEntity.id(), planToUpdate.name(), planToUpdate.description()))
+    public Mono<Plan> update(String code, PlanRequest planToUpdate) {
+        return PlanRepository.findById(code)
+                .switchIfEmpty(Mono.error(new PlanNotFoundException(code)))
+                .map(planEntity -> new Plan(planEntity.code(), planToUpdate.name(), planToUpdate.description()))
                 .flatMap(PlanRepository::save);
     }
 
-    public Mono<Void> delete(long id) {
-        return PlanRepository.findById(id)
-                .switchIfEmpty(Mono.error(new PlanNotFoundException(id)))
+    public Mono<Void> delete(String code) {
+        return PlanRepository.findById(code)
+                .switchIfEmpty(Mono.error(new PlanNotFoundException(code)))
                 .flatMap(PlanRepository::delete);
     }
 

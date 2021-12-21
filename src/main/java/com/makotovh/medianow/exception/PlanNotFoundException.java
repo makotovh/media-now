@@ -6,7 +6,7 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @ResponseStatus(NOT_FOUND)
 public class PlanNotFoundException extends RuntimeException {
-    public PlanNotFoundException(long id) {
+    public PlanNotFoundException(String id) {
       super("Could not find Plan with id " + id);
     }
 }
