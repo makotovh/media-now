@@ -39,7 +39,7 @@ class PricePlanResourceTest {
   private String countryCode = "SE";
   private BigDecimal price = new BigDecimal("100.00");
   private LocalDate startDate = LocalDate.now();
-  private Plan plan = new Plan(planCode, "Premium", "Premium Plan");
+  private Plan plan = new Plan(1, planCode, "Premium", "Premium Plan");
 
   @Test
   void testCreatePricePlan() {
@@ -47,7 +47,7 @@ class PricePlanResourceTest {
 
     var pricePlanRequest = new PricePlanRequest(countryCode, price, startDate);
 
-    when(planRepository.findById(planCode)).thenReturn(Mono.just(plan));
+    when(planRepository.findByCode(planCode)).thenReturn(Mono.just(plan));
     when(pricePlanRepository.findActiveByPlanCodeAndCountry(planCode, countryCode))
         .thenReturn(Mono.empty());
     when(pricePlanRepository.save(any(PricePlan.class))).thenReturn(Mono.just(pricePlan));
@@ -81,7 +81,7 @@ class PricePlanResourceTest {
     var pricePlanRequest = new PricePlanRequest(countryCode, price, null);
     var createdPricePlan = new PricePlan(1, planCode, countryCode, price, expectedStartDate, null);
 
-    when(planRepository.findById(planCode)).thenReturn(Mono.just(plan));
+    when(planRepository.findByCode(planCode)).thenReturn(Mono.just(plan));
     when(pricePlanRepository.findActiveByPlanCodeAndCountry(planCode, countryCode))
         .thenReturn(Mono.empty());
     when(pricePlanRepository.save(
@@ -115,7 +115,7 @@ class PricePlanResourceTest {
     var pricePlanRequest = new PricePlanRequest(countryCode, price, startDate);
     var pricePlan = new PricePlan(1, planCode, countryCode, price, startDate, null);
 
-    when(planRepository.findById(planCode)).thenReturn(Mono.just(plan));
+    when(planRepository.findByCode(planCode)).thenReturn(Mono.just(plan));
     when(pricePlanRepository.findActiveByPlanCodeAndCountry(planCode, countryCode))
         .thenReturn(Mono.just(pricePlan));
     webTestClient
@@ -131,7 +131,7 @@ class PricePlanResourceTest {
   void shouldNotCreateNewPlanWhenPlanIsNotFound() {
     var pricePlanRequest = new PricePlanRequest(countryCode, price, startDate);
 
-    when(planRepository.findById(planCode)).thenReturn(Mono.empty());
+    when(planRepository.findByCode(planCode)).thenReturn(Mono.empty());
     webTestClient
         .post()
         .uri("/plans/PREMIUM/price-plans")

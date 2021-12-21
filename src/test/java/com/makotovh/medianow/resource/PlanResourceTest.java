@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -38,10 +39,11 @@ class PlanResourceTest {
     @Test
     void addPlan() {
         PlanRequest planRequest = new PlanRequest(planCode, planName, planDescription);
-        Plan planEntity = new Plan(planCode, planName, planDescription);
-        Plan expectedPlan = new Plan(planCode, planName, planDescription);
+        Plan planEntity = new Plan(1, planCode, planName, planDescription);
+        Plan expectedPlan = new Plan(1, planCode, planName, planDescription);
 
-        when(planRepository.save(new Plan(planCode, planName, planDescription))).thenReturn(Mono.just(planEntity));
+        when(planRepository.findByCode(planCode)).thenReturn(Mono.empty());
+        when(planRepository.save(new Plan(0, planCode, planName, planDescription))).thenReturn(Mono.just(planEntity));
 
         webTestClient.post()
                 .uri("/plans")
@@ -63,10 +65,20 @@ class PlanResourceTest {
     }
 
     @Test
-    void getPlan() {
-        Plan expectedPlan = new Plan(planCode, planName, planDescription);
+    void shouldValidatePlanCode() {
+        when(planRepository.findByCode(planCode)).thenReturn(Mono.just(new Plan(1, planCode, planName, planDescription)));
+        webTestClient.post()
+                .uri("/plans")
+                .bodyValue(new PlanRequest(planCode, planName, planDescription))
+                .exchange()
+                .expectStatus().isEqualTo(HttpStatus.CONFLICT);
+    }
 
-        when(planRepository.findById(planCode)).thenReturn(Mono.just(new Plan(planCode, planName, planDescription)));
+    @Test
+    void getPlan() {
+        Plan expectedPlan = new Plan(1, planCode, planName, planDescription);
+
+        when(planRepository.findByCode(planCode)).thenReturn(Mono.just(new Plan(1, planCode, planName, planDescription)));
 
         webTestClient.get()
                 .uri("/plans/TEST")
@@ -78,7 +90,7 @@ class PlanResourceTest {
 
     @Test
     void getPlanNotFound() {
-        when(planRepository.findById(planCode)).thenReturn(Mono.empty());
+        when(planRepository.findByCode(planCode)).thenReturn(Mono.empty());
 
         webTestClient.get()
                 .uri("/plans/TEST")
@@ -89,10 +101,10 @@ class PlanResourceTest {
     @Test
     void updatePlan() {
         PlanRequest planRequest = new PlanRequest(planCode, planName, planDescription);
-        Plan planEntity = new Plan(planCode, planName, planDescription);
-        Plan expectedPlan = new Plan(planCode, planName, planDescription);
+        Plan planEntity = new Plan(1, planCode, planName, planDescription);
+        Plan expectedPlan = new Plan(1, planCode, planName, planDescription);
 
-        when(planRepository.findById(planCode)).thenReturn(Mono.just(planEntity));
+        when(planRepository.findByCode(planCode)).thenReturn(Mono.just(planEntity));
         when(planRepository.save(planEntity)).thenReturn(Mono.just(planEntity));
 
         webTestClient.put()
@@ -106,7 +118,7 @@ class PlanResourceTest {
 
     @Test
     void updatePlanNotFound() {
-        when(planRepository.findById(planCode)).thenReturn(Mono.empty());
+        when(planRepository.findByCode(planCode)).thenReturn(Mono.empty());
 
         webTestClient.put()
                 .uri("/plans/TEST")
@@ -117,8 +129,8 @@ class PlanResourceTest {
 
     @Test
     void deletePlan() {
-        Plan testPlan = new Plan(planCode,planName, planDescription);
-        when(planRepository.findById(planCode)).thenReturn(Mono.just(testPlan));
+        Plan testPlan = new Plan(1, planCode,planName, planDescription);
+        when(planRepository.findByCode(planCode)).thenReturn(Mono.just(testPlan));
         when(planRepository.delete(testPlan)).thenReturn(Mono.empty());
         webTestClient.delete()
                 .uri("/plans/TEST")
@@ -128,7 +140,7 @@ class PlanResourceTest {
 
     @Test
     void deletePlanNotFound() {
-        when(planRepository.findById(planCode)).thenReturn(Mono.empty());
+        when(planRepository.findByCode(planCode)).thenReturn(Mono.empty());
         webTestClient.delete()
                 .uri("/plans/TEST")
                 .exchange()
@@ -137,8 +149,8 @@ class PlanResourceTest {
 
     @Test
     void listPlans() {
-        Plan plan = new Plan(planCode, planName, planDescription);
-        Plan expectedPlan = new Plan(planCode, planName, planDescription);
+        Plan plan = new Plan(1, planCode, planName, planDescription);
+        Plan expectedPlan = new Plan(1, planCode, planName, planDescription);
         List<Plan> plans = new ArrayList<>();
         plans.add(plan);
         when(planRepository.findAll()).thenReturn(Flux.fromIterable(plans));

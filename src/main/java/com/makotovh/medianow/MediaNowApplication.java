@@ -18,7 +18,9 @@ public class MediaNowApplication {
 
 		client.sql("CREATE TABLE Plan" +
 						"(id bigint auto_increment primary key," +
-						"name VARCHAR(255))")
+						"code varchar(10)," +
+						"name VARCHAR(255)," +
+						"description VARCHAR(255))")
 				.fetch()
 				.all()
 				.collectList()

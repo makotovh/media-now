@@ -26,7 +26,7 @@ public class PricePlanService {
         (pricePlanRequest.startDate() != null ? pricePlanRequest.startDate() : LocalDate.now());
 
     return planRepository
-        .findById(planCode)
+        .findByCode(planCode)
         .switchIfEmpty(Mono.error(new PlanNotFoundException(planCode)))
         .flatMap(
             plan ->
