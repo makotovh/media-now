@@ -33,9 +33,9 @@ class PlanResourceTest {
     @Autowired
     private WebTestClient webTestClient;
 
-    private String planCode = "TEST";
-    private String planName = "testPlan";
-    private String planDescription = "test description";
+    private final String planCode = "TEST";
+    private final String planName = "testPlan";
+    private final String planDescription = "test description";
 
     @Test
     void addPlan() {
