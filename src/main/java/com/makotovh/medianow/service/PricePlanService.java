@@ -1,8 +1,11 @@
 package com.makotovh.medianow.service;
 
+import com.makotovh.medianow.exception.PlanNotFoundException;
+import com.makotovh.medianow.exception.PricePlanAlreadyExistsException;
 import com.makotovh.medianow.exception.PricePlanNotFoundException;
 import com.makotovh.medianow.model.PricePlan;
 import com.makotovh.medianow.model.PricePlanRequest;
+import com.makotovh.medianow.repository.PlanRepository;
 import com.makotovh.medianow.repository.PricePlanRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,25 +18,40 @@ import java.time.LocalDate;
 public class PricePlanService {
 
   private final PricePlanRepository pricePlanRepository;
+  private final PlanRepository planRepository;
 
-  public Mono<PricePlan> createPricePlan(PricePlanRequest pricePlanRequest) {
-    var startDate = LocalDate.now();
-    if (pricePlanRequest.startDate() != null) {
-      startDate = pricePlanRequest.startDate();
-    }
-    var pricePlan = new PricePlan(
-        0,
-        pricePlanRequest.name(),
-        pricePlanRequest.description(),
-        pricePlanRequest.countryCode(),
-        pricePlanRequest.price(),
-        startDate,
-        null);
-    return pricePlanRepository.save(pricePlan);
+  public Mono<PricePlan> createPricePlan(String planCode, PricePlanRequest pricePlanRequest) {
+    final var startDate =
+        (pricePlanRequest.startDate() != null ? pricePlanRequest.startDate() : LocalDate.now());
+
+    return planRepository
+        .findById(planCode)
+        .switchIfEmpty(Mono.error(new PlanNotFoundException(planCode)))
+        .flatMap(
+            plan ->
+                pricePlanRepository
+                    .findActiveByPlanCodeAndCountry(planCode, pricePlanRequest.countryCode())
+                    .flatMap(
+                        activePricePlan -> {
+                          if (activePricePlan == null) {
+                            return pricePlanRepository.save(
+                                new PricePlan(
+                                    0,
+                                    planCode,
+                                    pricePlanRequest.countryCode(),
+                                    pricePlanRequest.price(),
+                                    startDate,
+                                    null));
+                          } else {
+                            throw new PricePlanAlreadyExistsException(
+                                planCode, pricePlanRequest.countryCode());
+                          }
+                        }));
   }
 
   public Mono<PricePlan> getPricePlan(Long id) {
-    return pricePlanRepository.findById(id)
-            .switchIfEmpty(Mono.error(new PricePlanNotFoundException(id)));
+    return pricePlanRepository
+        .findById(id)
+        .switchIfEmpty(Mono.error(new PricePlanNotFoundException(id)));
   }
 }

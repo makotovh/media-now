@@ -12,7 +12,7 @@ import javax.validation.Valid;
 import static org.springframework.http.HttpStatus.CREATED;
 
 @RestController
-@RequestMapping("/price-plans")
+@RequestMapping("/plans/{plan-code}/price-plans")
 @AllArgsConstructor
 public class PricePlanResource {
 
@@ -20,8 +20,8 @@ public class PricePlanResource {
 
     @PostMapping
     @ResponseStatus(CREATED)
-    public Mono<PricePlan> createPricePlan(@RequestBody @Valid PricePlanRequest request) {
-        return pricePlanService.createPricePlan(request);
+    public Mono<PricePlan> createPricePlan(@PathVariable("plan-code") String planCode, @RequestBody @Valid PricePlanRequest request) {
+        return pricePlanService.createPricePlan(planCode, request);
     }
 
     @GetMapping("/{id}")

@@ -7,8 +7,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public record PricePlan(@Id long id,
-                        @NotBlank String name,
-                        String description,
+                        @NotBlank String planCode,
                         @NotBlank @Size(min = 2, max = 2) @Pattern(regexp = "[A-Z]{2}") String countryCode,
                         @NotNull @PositiveOrZero BigDecimal price,
                         @NotNull LocalDate startDate,
