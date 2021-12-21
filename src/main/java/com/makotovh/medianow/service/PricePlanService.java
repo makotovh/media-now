@@ -31,10 +31,12 @@ public class PricePlanService {
         .flatMap(
             plan ->
                 pricePlanRepository
-                    .findActiveByPlanCodeAndCountry(planCode, pricePlanRequest.countryCode())
+                    .findActiveByPlanCodeAndCountryCode(planCode, pricePlanRequest.countryCode())
+                    .flux()
+                    .count()
                     .flatMap(
-                        activePricePlan -> {
-                          if (activePricePlan == null) {
+                        count -> {
+                          if (count == 0) {
                             return pricePlanRepository.save(
                                 new PricePlan(
                                     0,
@@ -44,8 +46,9 @@ public class PricePlanService {
                                     startDate,
                                     null));
                           } else {
-                            throw new PricePlanAlreadyExistsException(
-                                planCode, pricePlanRequest.countryCode());
+                            return Mono.error(
+                                new PricePlanAlreadyExistsException(
+                                    planCode, pricePlanRequest.countryCode()));
                           }
                         }));
   }

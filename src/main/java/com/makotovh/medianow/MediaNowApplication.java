@@ -21,7 +21,7 @@ public class MediaNowApplication {
 						"code varchar(10)," +
 						"name VARCHAR(255)," +
 						"description VARCHAR(255));" +
-						"CREATE TABLE PicePlan " +
+						"CREATE TABLE Price_Plan " +
 						"(id bigint auto_increment primary key," +
 						"plan_code varchar(10)," +
 						"country_code varchar(2)," +

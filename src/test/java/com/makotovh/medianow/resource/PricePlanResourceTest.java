@@ -23,7 +23,6 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @WebFluxTest(PricePlanResource.class)
@@ -48,7 +47,7 @@ class PricePlanResourceTest {
     var pricePlanRequest = new PricePlanRequest(countryCode, price, startDate);
 
     when(planRepository.findByCode(planCode)).thenReturn(Mono.just(plan));
-    when(pricePlanRepository.findActiveByPlanCodeAndCountry(planCode, countryCode))
+    when(pricePlanRepository.findActiveByPlanCodeAndCountryCode(planCode, countryCode))
         .thenReturn(Mono.empty());
     when(pricePlanRepository.save(any(PricePlan.class))).thenReturn(Mono.just(pricePlan));
     webTestClient
@@ -82,10 +81,10 @@ class PricePlanResourceTest {
     var createdPricePlan = new PricePlan(1, planCode, countryCode, price, expectedStartDate, null);
 
     when(planRepository.findByCode(planCode)).thenReturn(Mono.just(plan));
-    when(pricePlanRepository.findActiveByPlanCodeAndCountry(planCode, countryCode))
+    when(pricePlanRepository.findActiveByPlanCodeAndCountryCode(planCode, countryCode))
         .thenReturn(Mono.empty());
     when(pricePlanRepository.save(
-            new PricePlan(0, planCode, countryCode, price, eq(expectedStartDate), null)))
+            new PricePlan(0, planCode, countryCode, price, expectedStartDate, null)))
         .thenReturn(Mono.just(createdPricePlan));
     webTestClient
         .post()
@@ -116,7 +115,7 @@ class PricePlanResourceTest {
     var pricePlan = new PricePlan(1, planCode, countryCode, price, startDate, null);
 
     when(planRepository.findByCode(planCode)).thenReturn(Mono.just(plan));
-    when(pricePlanRepository.findActiveByPlanCodeAndCountry(planCode, countryCode))
+    when(pricePlanRepository.findActiveByPlanCodeAndCountryCode(planCode, countryCode))
         .thenReturn(Mono.just(pricePlan));
     webTestClient
         .post()
