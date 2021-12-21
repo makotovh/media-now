@@ -1,4 +1,4 @@
-package com.makotovh.medianow;
+package com.makotovh.medianow.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.config.ResourceHandlerRegistry;
