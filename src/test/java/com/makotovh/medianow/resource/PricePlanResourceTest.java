@@ -262,4 +262,63 @@ class PricePlanResourceTest {
         .expectStatus()
         .isBadRequest();
   }
+
+  @Test
+  void testGetPricePlansForPlanAndCountry() {
+    var pricePlan1 =
+            new PricePlanEntity(
+                    1, planCode, countryCode, price.amount(), price.currencyCode(), startDate, null);
+    var pricePlan2 =
+            new PricePlanEntity(
+                    2,
+                    "Basic",
+                    countryCode,
+                    new BigDecimal("40.00"),
+                    "SEK",
+                    LocalDate.now().minus(1, ChronoUnit.YEARS),
+                    startDate);
+
+    when(pricePlanRepository.findByPlanCodeAndCountryCode(planCode, countryCode))
+            .thenReturn(Flux.just(pricePlan1, pricePlan2));
+    webTestClient
+            .get()
+            .uri(uriBuilder -> uriBuilder.path("/plans/PREMIUM/price-plans/country/SE")
+                    .build()
+            )
+            .exchange()
+            .expectStatus()
+            .isOk()
+            .expectBodyList(PricePlan.class)
+            .hasSize(1);
+  }
+
+  @Test
+  void testGetPricePlansForPlanAndCountryWithInactive() {
+    var pricePlan1 =
+            new PricePlanEntity(
+                    1, planCode, countryCode, price.amount(), price.currencyCode(), startDate, null);
+    var pricePlan2 =
+            new PricePlanEntity(
+                    2,
+                    "Basic",
+                    countryCode,
+                    new BigDecimal("40.00"),
+                    "SEK",
+                    LocalDate.now().minus(1, ChronoUnit.YEARS),
+                    startDate);
+
+    when(pricePlanRepository.findByPlanCodeAndCountryCode(planCode, countryCode))
+            .thenReturn(Flux.just(pricePlan1, pricePlan2));
+    webTestClient
+            .get()
+            .uri(uriBuilder -> uriBuilder.path("/plans/PREMIUM/price-plans/country/SE")
+                    .queryParam("showInactive", true)
+                    .build()
+            )
+            .exchange()
+            .expectStatus()
+            .isOk()
+            .expectBodyList(PricePlan.class)
+            .hasSize(2);
+  }
 }

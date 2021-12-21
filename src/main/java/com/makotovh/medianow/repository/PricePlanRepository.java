@@ -12,4 +12,6 @@ public interface PricePlanRepository extends ReactiveCrudRepository<PricePlanEnt
     Mono<PricePlanEntity> findByPlanCodeAndCountryCodeAndEndDateIsNull(String planCode, String countryCode);
 
     Flux<PricePlanEntity> findByPlanCode(String planCode);
+
+    Flux<PricePlanEntity> findByPlanCodeAndCountryCode(String planCode, String countryCode);
 }

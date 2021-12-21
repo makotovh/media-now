@@ -48,4 +48,13 @@ public class PricePlanResource {
       @RequestBody @Valid PricePlanUpdateRequest request) {
     return pricePlanService.updatePricePlan(planCode, countryCode, request);
   }
+
+  @GetMapping("/country/{country-code}")
+  public Flux<PricePlan> getPricePlanByCountry(
+      @PathVariable("plan-code") String planCode,
+      @PathVariable("country-code") String countryCode,
+      @RequestParam(value = "showInactive", required = false, defaultValue = "false") Boolean showInactive) {
+    return pricePlanService.findByPlanCodeAndCountryCode(planCode, countryCode)
+            .filter(pricePlan -> showInactive || pricePlan.isActive());
+  }
 }

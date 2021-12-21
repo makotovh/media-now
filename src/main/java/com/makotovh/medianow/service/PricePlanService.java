@@ -104,4 +104,8 @@ public class PricePlanService {
         pricePlanEntity.startDate(),
         pricePlanEntity.endDate());
   }
+
+  public Flux<PricePlan> findByPlanCodeAndCountryCode(String planCode, String countryCode) {
+    return pricePlanRepository.findByPlanCodeAndCountryCode(planCode, countryCode).map(this::toPricePlan);
+  }
 }
