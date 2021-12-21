@@ -1,7 +1,8 @@
 package com.makotovh.medianow.resource;
 
 import com.makotovh.medianow.model.Plan;
-import com.makotovh.medianow.model.PlanRequest;
+import com.makotovh.medianow.model.PlanCreateRequest;
+import com.makotovh.medianow.model.PlanUpdateRequest;
 import com.makotovh.medianow.service.PlanService;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +22,7 @@ public class PlanResource {
 
     @PostMapping
     @ResponseStatus(CREATED)
-    public Mono<Plan> createPlan(@RequestBody @Valid PlanRequest planToCreate) {
+    public Mono<Plan> createPlan(@RequestBody @Valid PlanCreateRequest planToCreate) {
         return planService.createPlan(planToCreate);
     }
 
@@ -31,7 +32,7 @@ public class PlanResource {
     }
 
     @PutMapping("/{code}")
-    public Mono<Plan> updatePlan(@PathVariable String code, @RequestBody @Valid PlanRequest PlanToUpdate) {
+    public Mono<Plan> updatePlan(@PathVariable String code, @RequestBody @Valid PlanUpdateRequest PlanToUpdate) {
         return planService.update(code, PlanToUpdate);
     }
 

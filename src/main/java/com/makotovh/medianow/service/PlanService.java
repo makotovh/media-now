@@ -3,7 +3,8 @@ package com.makotovh.medianow.service;
 import com.makotovh.medianow.exception.PlanAlreadyExistsException;
 import com.makotovh.medianow.exception.PlanNotFoundException;
 import com.makotovh.medianow.model.Plan;
-import com.makotovh.medianow.model.PlanRequest;
+import com.makotovh.medianow.model.PlanCreateRequest;
+import com.makotovh.medianow.model.PlanUpdateRequest;
 import com.makotovh.medianow.repository.PlanRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,7 +16,7 @@ import reactor.core.publisher.Mono;
 public class PlanService {
     private final PlanRepository planRepository;
 
-    public Mono<Plan> createPlan(PlanRequest newPlan) {
+    public Mono<Plan> createPlan(PlanCreateRequest newPlan) {
     return planRepository.findByCode(newPlan.code())
             .flux().count()
             .flatMap(count -> {
@@ -31,7 +32,7 @@ public class PlanService {
                 .switchIfEmpty(Mono.error(new PlanNotFoundException(code)));
     }
 
-    public Mono<Plan> update(String code, PlanRequest planToUpdate) {
+    public Mono<Plan> update(String code, PlanUpdateRequest planToUpdate) {
         return planRepository.findByCode(code)
                 .switchIfEmpty(Mono.error(new PlanNotFoundException(code)))
                 .map(planEntity -> new Plan(planEntity.id(), planEntity.code(), planToUpdate.name(), planToUpdate.description()))

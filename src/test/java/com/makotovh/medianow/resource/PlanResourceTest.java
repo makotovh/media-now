@@ -1,7 +1,8 @@
 package com.makotovh.medianow.resource;
 
 import com.makotovh.medianow.model.Plan;
-import com.makotovh.medianow.model.PlanRequest;
+import com.makotovh.medianow.model.PlanCreateRequest;
+import com.makotovh.medianow.model.PlanUpdateRequest;
 import com.makotovh.medianow.repository.PlanRepository;
 import com.makotovh.medianow.service.PlanService;
 import org.junit.jupiter.api.Test;
@@ -38,7 +39,7 @@ class PlanResourceTest {
 
     @Test
     void addPlan() {
-        PlanRequest planRequest = new PlanRequest(planCode, planName, planDescription);
+        PlanCreateRequest planCreateRequest = new PlanCreateRequest(planCode, planName, planDescription);
         Plan planEntity = new Plan(1, planCode, planName, planDescription);
         Plan expectedPlan = new Plan(1, planCode, planName, planDescription);
 
@@ -47,7 +48,7 @@ class PlanResourceTest {
 
         webTestClient.post()
                 .uri("/plans")
-                .bodyValue(planRequest)
+                .bodyValue(planCreateRequest)
                 .exchange()
                 .expectStatus().isCreated()
                 .expectBody(Plan.class)
@@ -59,7 +60,7 @@ class PlanResourceTest {
     void shouldValidatePlan(String planName) {
         webTestClient.post()
                 .uri("/plans")
-                .bodyValue(new PlanRequest(planCode, planName, planDescription))
+                .bodyValue(new PlanCreateRequest(planCode, planName, planDescription))
                 .exchange()
                 .expectStatus().isBadRequest();
     }
@@ -69,7 +70,7 @@ class PlanResourceTest {
         when(planRepository.findByCode(planCode)).thenReturn(Mono.just(new Plan(1, planCode, planName, planDescription)));
         webTestClient.post()
                 .uri("/plans")
-                .bodyValue(new PlanRequest(planCode, planName, planDescription))
+                .bodyValue(new PlanCreateRequest(planCode, planName, planDescription))
                 .exchange()
                 .expectStatus().isEqualTo(HttpStatus.CONFLICT);
     }
@@ -100,7 +101,7 @@ class PlanResourceTest {
 
     @Test
     void updatePlan() {
-        PlanRequest planRequest = new PlanRequest(planCode, planName, planDescription);
+        PlanUpdateRequest planCreateRequest = new PlanUpdateRequest(planName, planDescription);
         Plan planEntity = new Plan(1, planCode, planName, planDescription);
         Plan expectedPlan = new Plan(1, planCode, planName, planDescription);
 
@@ -109,7 +110,7 @@ class PlanResourceTest {
 
         webTestClient.put()
                 .uri("/plans/TEST")
-                .bodyValue(planRequest)
+                .bodyValue(planCreateRequest)
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody(Plan.class)
@@ -122,7 +123,7 @@ class PlanResourceTest {
 
         webTestClient.put()
                 .uri("/plans/TEST")
-                .bodyValue(new PlanRequest(planCode, planName, planDescription))
+                .bodyValue(new PlanUpdateRequest(planName, planDescription))
                 .exchange()
                 .expectStatus().isNotFound();
     }
