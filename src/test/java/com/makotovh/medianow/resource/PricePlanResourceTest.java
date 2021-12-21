@@ -155,7 +155,7 @@ class PricePlanResourceTest {
   }
 
   @Test
-  void testGetAllPricePlanIncludingInactiveOns() {
+  void testGetAllPricePlanIncludingInactive() {
     var pricePlan1 =
             new PricePlanEntity(
                     1, planCode, countryCode, price.amount(), price.currencyCode(), startDate, null);
