@@ -18,12 +18,12 @@ public class MediaNowApplication {
 
 		client.sql("CREATE TABLE Plan" +
 						"(id bigint auto_increment primary key," +
-						"code varchar(10)," +
+						"code varchar(20)," +
 						"name VARCHAR(255)," +
 						"description VARCHAR(255));" +
 						"CREATE TABLE Price_Plan " +
 						"(id bigint auto_increment primary key," +
-						"plan_code varchar(10)," +
+						"plan_code varchar(20)," +
 						"country_code varchar(2)," +
 						"price_amount numeric(20,2)," +
 						"price_currency varchar(3)," +

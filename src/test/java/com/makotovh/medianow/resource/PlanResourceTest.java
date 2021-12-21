@@ -66,7 +66,7 @@ class PlanResourceTest {
     }
 
     @Test
-    void shouldValidatePlanCode() {
+    void shouldValidatePlanCodeAlreadyExists() {
         when(planRepository.findByCode(planCode)).thenReturn(Mono.just(new Plan(1, planCode, planName, planDescription)));
         webTestClient.post()
                 .uri("/plans")
@@ -74,6 +74,32 @@ class PlanResourceTest {
                 .exchange()
                 .expectStatus().isEqualTo(HttpStatus.CONFLICT);
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", " ", "  ", "%$%$$%$%", "TEST_11", "1212-TE", "TEST-", "-TEST", "-", "VALID-PATTERN-BUT-TOO-LONG"})
+    void shouldValidatePlanCode(String planCode) {
+        webTestClient.post()
+                .uri("/plans")
+                .bodyValue(new PlanCreateRequest(planCode, planName, planDescription))
+                .exchange()
+                .expectStatus().isBadRequest();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"MAKOTO", "TEST", "TEST-11", "TEST-TEST", "TEST11TEST", "MAKOTO-TEST-TEST-123"})
+    void shouldAcceptValidPlanCode(String planCode) {
+        Plan planEntity = new Plan(1, planCode, planName, planDescription);
+
+        when(planRepository.findByCode(planCode)).thenReturn(Mono.empty());
+        when(planRepository.save(new Plan(0, planCode, planName, planDescription))).thenReturn(Mono.just(planEntity));
+
+        webTestClient.post()
+                .uri("/plans")
+                .bodyValue(new PlanCreateRequest(planCode, planName, planDescription))
+                .exchange()
+                .expectStatus().isCreated();
+    }
+
 
     @Test
     void getPlan() {
