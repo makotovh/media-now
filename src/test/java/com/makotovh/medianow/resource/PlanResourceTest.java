@@ -3,7 +3,9 @@ package com.makotovh.medianow.resource;
 import com.makotovh.medianow.model.Plan;
 import com.makotovh.medianow.model.PlanCreateRequest;
 import com.makotovh.medianow.model.PlanUpdateRequest;
+import com.makotovh.medianow.model.PricePlanEntity;
 import com.makotovh.medianow.repository.PlanRepository;
+import com.makotovh.medianow.repository.PricePlanRepository;
 import com.makotovh.medianow.service.PlanService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -17,6 +19,8 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -29,6 +33,9 @@ class PlanResourceTest {
 
     @MockBean
     private PlanRepository planRepository;
+
+    @MockBean
+    private PricePlanRepository pricePlanRepository;
 
     @Autowired
     private WebTestClient webTestClient;
@@ -158,6 +165,7 @@ class PlanResourceTest {
     void deletePlan() {
         Plan testPlan = new Plan(1, planCode,planName, planDescription);
         when(planRepository.findByCode(planCode)).thenReturn(Mono.just(testPlan));
+        when(pricePlanRepository.findByPlanCode(planCode)).thenReturn(Flux.empty());
         when(planRepository.delete(testPlan)).thenReturn(Mono.empty());
         webTestClient.delete()
                 .uri("/plans/TEST")
@@ -172,6 +180,21 @@ class PlanResourceTest {
                 .uri("/plans/TEST")
                 .exchange()
                 .expectStatus().isNotFound();
+    }
+
+    @Test
+    void shouldNotAllowToDeletePlanWithPricePlanAssigned() {
+        Plan testPlan = new Plan(1, planCode,planName, planDescription);
+        var pricePlan = new PricePlanEntity(1, planCode, "SE", new BigDecimal("1.00"), "SEK", LocalDate.now(), null);
+
+        when(planRepository.findByCode(planCode)).thenReturn(Mono.just(testPlan));
+        when(pricePlanRepository.findByPlanCode(planCode)).thenReturn(Flux.just(pricePlan));
+        when(planRepository.delete(testPlan)).thenReturn(Mono.empty());
+
+        webTestClient.delete()
+                .uri("/plans/TEST")
+                .exchange()
+                .expectStatus().isEqualTo(HttpStatus.CONFLICT);
     }
 
     @Test

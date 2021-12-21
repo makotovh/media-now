@@ -27,11 +27,6 @@ public class PricePlanResource {
     return pricePlanService.createPricePlan(planCode, request);
   }
 
-  @GetMapping("/{id}")
-  public Mono<PricePlan> getPricePlan(@PathVariable("id") long id) {
-    return pricePlanService.getPricePlan(id);
-  }
-
   @GetMapping
   public Flux<PricePlan> findPricePlanByCode(
       @PathVariable("plan-code") String planCode,

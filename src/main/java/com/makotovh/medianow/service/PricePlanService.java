@@ -53,13 +53,6 @@ public class PricePlanService {
                         }));
   }
 
-  public Mono<PricePlan> getPricePlan(Long id) {
-    return pricePlanRepository
-        .findById(id)
-        .map(this::toPricePlan)
-        .switchIfEmpty(Mono.error(new PricePlanNotFoundException(id)));
-  }
-
   public Flux<PricePlan> findByPlanCode(String planCode) {
     return pricePlanRepository.findByPlanCode(planCode).map(this::toPricePlan);
   }
