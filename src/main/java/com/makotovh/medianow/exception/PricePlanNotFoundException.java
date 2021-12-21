@@ -6,6 +6,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ResponseStatus(HttpStatus.NOT_FOUND)
 public class PricePlanNotFoundException extends RuntimeException {
     public PricePlanNotFoundException(long id) {
-        super("Price plan with id " + id + " not found");
+        super("Could not find Price Plan with id " + id);
     }
 }
