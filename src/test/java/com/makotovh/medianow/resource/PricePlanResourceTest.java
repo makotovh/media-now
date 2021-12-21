@@ -15,10 +15,12 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -157,5 +159,30 @@ class PricePlanResourceTest {
   void testGetPricePlanNotFound() {
     when(pricePlanRepository.findById(1L)).thenReturn(Mono.empty());
     webTestClient.get().uri("/plans/PREMIUM/price-plans/1").exchange().expectStatus().isNotFound();
+  }
+
+  @Test
+  void testGetAllPricePlanForAPlan() {
+    var pricePlan1 = new PricePlan(1, planCode, countryCode, price, startDate, null);
+    var pricePlan2 =
+        new PricePlan(
+            2,
+            "Basic",
+            countryCode,
+            new BigDecimal("40.00"),
+            LocalDate.now().minus(1, ChronoUnit.YEARS),
+            startDate);
+    var pricePlan3 =
+        new PricePlan(3, "Basic", countryCode, new BigDecimal("50.00"), startDate, null);
+
+    when(pricePlanRepository.findByPlanCode(planCode))
+        .thenReturn(Flux.just(pricePlan1, pricePlan2, pricePlan3));
+    webTestClient
+        .get()
+        .uri("/plans/PREMIUM/price-plans")
+        .exchange()
+        .expectStatus()
+        .isOk()
+        .expectBodyList(PricePlan.class);
   }
 }

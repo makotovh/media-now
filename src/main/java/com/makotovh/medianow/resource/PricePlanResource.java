@@ -5,6 +5,7 @@ import com.makotovh.medianow.model.PricePlanRequest;
 import com.makotovh.medianow.service.PricePlanService;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import javax.validation.Valid;
@@ -27,5 +28,10 @@ public class PricePlanResource {
     @GetMapping("/{id}")
     public Mono<PricePlan> getPricePlan(@PathVariable("id") long id) {
         return pricePlanService.getPricePlan(id);
+    }
+
+    @GetMapping
+    public Flux<PricePlan> findPricePlanByCode(@PathVariable("plan-code") String planCode) {
+        return pricePlanService.findByPlanCode(planCode);
     }
 }

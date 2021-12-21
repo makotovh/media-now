@@ -9,6 +9,7 @@ import com.makotovh.medianow.repository.PlanRepository;
 import com.makotovh.medianow.repository.PricePlanRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDate;
@@ -53,5 +54,9 @@ public class PricePlanService {
     return pricePlanRepository
         .findById(id)
         .switchIfEmpty(Mono.error(new PricePlanNotFoundException(id)));
+  }
+
+  public Flux<PricePlan> findByPlanCode(String planCode) {
+    return pricePlanRepository.findByPlanCode(planCode);
   }
 }
