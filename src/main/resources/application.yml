@@ -1,0 +1,27 @@
+spring:
+  r2dbc:
+    url: r2dbc:h2:mem:///medianowdb?options=DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    name: sa
+    password:
+server:
+  port: 8080
+
+##############
+# Development
+---
+spring:
+  profiles: dev
+logging:
+  level:
+    org.springframework.data.r2dbc: DEBUG
+
+
+##############
+# Production
+---
+spring:
+  profiles: prod
+logging:
+  level:
+    org.springframework: INFO
+    com.apsis.counter: INFO
