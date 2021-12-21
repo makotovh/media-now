@@ -1,7 +1,7 @@
 package com.makotovh.medianow.model;
 
-import javax.validation.constraints.NotBlank;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
-public record PricePlanUpdateRequest(@NotBlank String name,
-                                     String description) {
+public record PricePlanUpdateRequest(@NotNull @Valid Price price) {
 }

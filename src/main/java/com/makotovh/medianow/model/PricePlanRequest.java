@@ -1,10 +1,11 @@
 package com.makotovh.medianow.model;
 
-import javax.validation.constraints.*;
-import java.math.BigDecimal;
-import java.time.LocalDate;
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 
 public record PricePlanRequest(@NotBlank @Size(min = 2, max = 2) @Pattern(regexp = "[A-Z]{2}") String countryCode,
-                               @NotNull @PositiveOrZero BigDecimal price,
-                               LocalDate startDate) {
+                               @NotNull @Valid Price price) {
 }

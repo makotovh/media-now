@@ -3,8 +3,10 @@ package com.makotovh.medianow.service;
 import com.makotovh.medianow.exception.PlanNotFoundException;
 import com.makotovh.medianow.exception.PricePlanAlreadyExistsException;
 import com.makotovh.medianow.exception.PricePlanNotFoundException;
+import com.makotovh.medianow.model.Price;
 import com.makotovh.medianow.model.PricePlan;
 import com.makotovh.medianow.model.PricePlanRequest;
+import com.makotovh.medianow.model.PricePlanUpdateRequest;
 import com.makotovh.medianow.repository.PlanRepository;
 import com.makotovh.medianow.repository.PricePlanRepository;
 import lombok.AllArgsConstructor;
@@ -22,9 +24,7 @@ public class PricePlanService {
   private final PlanRepository planRepository;
 
   public Mono<PricePlan> createPricePlan(String planCode, PricePlanRequest pricePlanRequest) {
-    final var startDate =
-        (pricePlanRequest.startDate() != null ? pricePlanRequest.startDate() : LocalDate.now());
-
+    final var startDate = LocalDate.now();
     return planRepository
         .findByCode(planCode)
         .switchIfEmpty(Mono.error(new PlanNotFoundException(planCode)))
@@ -62,4 +62,22 @@ public class PricePlanService {
   public Flux<PricePlan> findByPlanCode(String planCode) {
     return pricePlanRepository.findByPlanCode(planCode);
   }
+
+  public Mono<PricePlan> updatePricePlan(
+      String planCode, String countryCode, PricePlanUpdateRequest request) {
+    return pricePlanRepository.findActiveByPlanCodeAndCountryCode(planCode, countryCode)
+            .switchIfEmpty(Mono.error(new PricePlanNotFoundException(planCode, countryCode)))
+            .flatMap(this::inactivatePricePlan)
+            .flatMap(pricePlan -> createNewPricePlanWithNewPrice(pricePlan, request.price()));
+  }
+
+  private Mono<PricePlan> inactivatePricePlan(PricePlan pricePlan) {
+    return pricePlanRepository.save(new PricePlan(pricePlan.id(), pricePlan.planCode(), pricePlan.countryCode(), pricePlan.price(), pricePlan.startDate(), LocalDate.now()));
+  }
+
+  public Mono<PricePlan> createNewPricePlanWithNewPrice(PricePlan pricePlan, Price newPrice) {
+    PricePlan newPricePlan = new PricePlan(0, pricePlan.planCode(), pricePlan.countryCode(), newPrice, LocalDate.now(), null);
+    return pricePlanRepository.save(newPricePlan);
+  }
+
 }
