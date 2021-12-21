@@ -33,8 +33,12 @@ public class PricePlanResource {
   }
 
   @GetMapping
-  public Flux<PricePlan> findPricePlanByCode(@PathVariable("plan-code") String planCode) {
-    return pricePlanService.findByPlanCode(planCode);
+  public Flux<PricePlan> findPricePlanByCode(
+      @PathVariable("plan-code") String planCode,
+      @RequestParam(value = "showInactive", required = false, defaultValue = "false") Boolean showInactive) {
+    return pricePlanService
+        .findByPlanCode(planCode)
+        .filter(pricePlan -> showInactive || pricePlan.isActive());
   }
 
   @PutMapping("/country/{country-code}")

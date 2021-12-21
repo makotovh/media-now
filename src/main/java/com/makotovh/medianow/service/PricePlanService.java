@@ -3,10 +3,7 @@ package com.makotovh.medianow.service;
 import com.makotovh.medianow.exception.PlanNotFoundException;
 import com.makotovh.medianow.exception.PricePlanAlreadyExistsException;
 import com.makotovh.medianow.exception.PricePlanNotFoundException;
-import com.makotovh.medianow.model.Price;
-import com.makotovh.medianow.model.PricePlan;
-import com.makotovh.medianow.model.PricePlanRequest;
-import com.makotovh.medianow.model.PricePlanUpdateRequest;
+import com.makotovh.medianow.model.*;
 import com.makotovh.medianow.repository.PlanRepository;
 import com.makotovh.medianow.repository.PricePlanRepository;
 import lombok.AllArgsConstructor;
@@ -31,20 +28,23 @@ public class PricePlanService {
         .flatMap(
             plan ->
                 pricePlanRepository
-                    .findActiveByPlanCodeAndCountryCode(planCode, pricePlanRequest.countryCode())
+                    .findByPlanCodeAndCountryCodeAndEndDateIsNull(planCode, pricePlanRequest.countryCode())
                     .flux()
                     .count()
                     .flatMap(
                         count -> {
                           if (count == 0) {
-                            return pricePlanRepository.save(
-                                new PricePlan(
-                                    0,
-                                    planCode,
-                                    pricePlanRequest.countryCode(),
-                                    pricePlanRequest.price(),
-                                    startDate,
-                                    null));
+                            return pricePlanRepository
+                                .save(
+                                    new PricePlanEntity(
+                                        0,
+                                        planCode,
+                                        pricePlanRequest.countryCode(),
+                                        pricePlanRequest.price().amount(),
+                                        pricePlanRequest.price().currencyCode(),
+                                        startDate,
+                                        null))
+                                .map(this::toPricePlan);
                           } else {
                             return Mono.error(
                                 new PricePlanAlreadyExistsException(
@@ -56,28 +56,52 @@ public class PricePlanService {
   public Mono<PricePlan> getPricePlan(Long id) {
     return pricePlanRepository
         .findById(id)
+        .map(this::toPricePlan)
         .switchIfEmpty(Mono.error(new PricePlanNotFoundException(id)));
   }
 
   public Flux<PricePlan> findByPlanCode(String planCode) {
-    return pricePlanRepository.findByPlanCode(planCode);
+    return pricePlanRepository.findByPlanCode(planCode).map(this::toPricePlan);
   }
 
   public Mono<PricePlan> updatePricePlan(
       String planCode, String countryCode, PricePlanUpdateRequest request) {
-    return pricePlanRepository.findActiveByPlanCodeAndCountryCode(planCode, countryCode)
-            .switchIfEmpty(Mono.error(new PricePlanNotFoundException(planCode, countryCode)))
-            .flatMap(this::inactivatePricePlan)
-            .flatMap(pricePlan -> createNewPricePlanWithNewPrice(pricePlan, request.price()));
+    return pricePlanRepository
+        .findByPlanCodeAndCountryCodeAndEndDateIsNull(planCode, countryCode)
+        .map(this::toPricePlan)
+        .switchIfEmpty(Mono.error(new PricePlanNotFoundException(planCode, countryCode)))
+        .flatMap(this::inactivatePricePlan)
+        .flatMap(pricePlan -> createNewPricePlanWithNewPrice(pricePlan, request.price()));
   }
 
   private Mono<PricePlan> inactivatePricePlan(PricePlan pricePlan) {
-    return pricePlanRepository.save(new PricePlan(pricePlan.id(), pricePlan.planCode(), pricePlan.countryCode(), pricePlan.price(), pricePlan.startDate(), LocalDate.now()));
+    return pricePlanRepository
+        .save(
+            new PricePlanEntity(
+                pricePlan.id(),
+                pricePlan.planCode(),
+                pricePlan.countryCode(),
+                pricePlan.price().amount(),
+                pricePlan.price().currencyCode(),
+                pricePlan.startDate(),
+                LocalDate.now()))
+        .map(this::toPricePlan);
   }
 
   public Mono<PricePlan> createNewPricePlanWithNewPrice(PricePlan pricePlan, Price newPrice) {
-    PricePlan newPricePlan = new PricePlan(0, pricePlan.planCode(), pricePlan.countryCode(), newPrice, LocalDate.now(), null);
-    return pricePlanRepository.save(newPricePlan);
+    var newPricePlan =
+        new PricePlanEntity(
+            0, pricePlan.planCode(), pricePlan.countryCode(), newPrice.amount(), newPrice.currencyCode(), LocalDate.now(), null);
+    return pricePlanRepository.save(newPricePlan).map(this::toPricePlan);
   }
 
+  private PricePlan toPricePlan(PricePlanEntity pricePlanEntity) {
+    return new PricePlan(
+        pricePlanEntity.id(),
+        pricePlanEntity.planCode(),
+        pricePlanEntity.countryCode(),
+        new Price(pricePlanEntity.priceAmount(), pricePlanEntity.priceCurrency()),
+        pricePlanEntity.startDate(),
+        pricePlanEntity.endDate());
+  }
 }

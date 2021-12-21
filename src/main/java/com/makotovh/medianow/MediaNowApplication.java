@@ -25,7 +25,8 @@ public class MediaNowApplication {
 						"(id bigint auto_increment primary key," +
 						"plan_code varchar(10)," +
 						"country_code varchar(2)," +
-						"price numeric(20,2)," +
+						"price_amount numeric(20,2)," +
+						"price_currency varchar(3)," +
 						"start_date date," +
 						"end_date date);")
 				.fetch()

@@ -41,14 +41,16 @@ class PricePlanResourceTest {
 
   @Test
   void testCreatePricePlan() {
-    var pricePlan = new PricePlan(1, planCode, countryCode, price, startDate, null);
+    var pricePlan =
+        new PricePlanEntity(
+            1, planCode, countryCode, price.amount(), price.currencyCode(), startDate, null);
 
     var pricePlanRequest = new PricePlanRequest(countryCode, price);
 
     when(planRepository.findByCode(planCode)).thenReturn(Mono.just(plan));
-    when(pricePlanRepository.findActiveByPlanCodeAndCountryCode(planCode, countryCode))
+    when(pricePlanRepository.findByPlanCodeAndCountryCodeAndEndDateIsNull(planCode, countryCode))
         .thenReturn(Mono.empty());
-    when(pricePlanRepository.save(any(PricePlan.class))).thenReturn(Mono.just(pricePlan));
+    when(pricePlanRepository.save(any(PricePlanEntity.class))).thenReturn(Mono.just(pricePlan));
     webTestClient
         .post()
         .uri("/plans/PREMIUM/price-plans")
@@ -60,9 +62,12 @@ class PricePlanResourceTest {
   }
 
   @ParameterizedTest
-  @CsvSource(value = {"-1:SEK", "-10:SEK", "-100:BRL", "10:DOLLAR"}, delimiter = ':')
+  @CsvSource(
+      value = {"-1:SEK", "-10:SEK", "-100:BRL", "10:DOLLAR"},
+      delimiter = ':')
   void shouldValidatePriceWhenCreateNewPricePlan(String wrongPrice, String currencyCode) {
-    var pricePlanRequest = new PricePlanRequest(countryCode, new Price(new BigDecimal(wrongPrice), currencyCode));
+    var pricePlanRequest =
+        new PricePlanRequest(countryCode, new Price(new BigDecimal(wrongPrice), currencyCode));
     webTestClient
         .post()
         .uri("/plans/PREMIUM/price-plans")
@@ -88,10 +93,12 @@ class PricePlanResourceTest {
   @Test
   void shouldNotCreateNewPlanWhenPricePlanAlreadyExists() {
     var pricePlanRequest = new PricePlanRequest(countryCode, price);
-    var pricePlan = new PricePlan(1, planCode, countryCode, price, startDate, null);
+    var pricePlan =
+        new PricePlanEntity(
+            1, planCode, countryCode, price.amount(), price.currencyCode(), startDate, null);
 
     when(planRepository.findByCode(planCode)).thenReturn(Mono.just(plan));
-    when(pricePlanRepository.findActiveByPlanCodeAndCountryCode(planCode, countryCode))
+    when(pricePlanRepository.findByPlanCodeAndCountryCodeAndEndDateIsNull(planCode, countryCode))
         .thenReturn(Mono.just(pricePlan));
     webTestClient
         .post()
@@ -102,26 +109,6 @@ class PricePlanResourceTest {
         .isEqualTo(HttpStatus.CONFLICT);
   }
 
-  //TODO finish that after implement update price plan
-  @Test
-  void shouldBePossibleCreateNewPricePlanWhenPricePlanAlreadyExistsButIsInactive() {
-    var pricePlanRequest = new PricePlanRequest(countryCode, price);
-    var endDate = LocalDate.now();
-    var pricePlan = new PricePlan(1, planCode, countryCode, price, startDate, endDate);
-
-    when(planRepository.findByCode(planCode)).thenReturn(Mono.just(plan));
-    when(pricePlanRepository.findActiveByPlanCodeAndCountryCode(planCode, countryCode))
-        .thenReturn(Mono.just(pricePlan));
-    when(pricePlanRepository.save(any(PricePlan.class))).thenReturn(Mono.just(pricePlan));
-    webTestClient
-        .post()
-        .uri("/plans/PREMIUM/price-plans")
-        .bodyValue(pricePlanRequest)
-        .exchange()
-        .expectStatus()
-        .isCreated()
-        .expectBody(PricePlan.class);
-  }
 
   @Test
   void shouldNotCreateNewPlanWhenPlanIsNotFound() {
@@ -139,7 +126,9 @@ class PricePlanResourceTest {
 
   @Test
   void testGetPricePlan() {
-    var pricePlan = new PricePlan(1, planCode, countryCode, price, startDate, null);
+    var pricePlan =
+        new PricePlanEntity(
+            1, planCode, countryCode, price.amount(), price.currencyCode(), startDate, null);
 
     when(pricePlanRepository.findById(1L)).thenReturn(Mono.just(pricePlan));
     webTestClient
@@ -159,17 +148,21 @@ class PricePlanResourceTest {
 
   @Test
   void testGetAllPricePlanForAPlan() {
-    var pricePlan1 = new PricePlan(1, planCode, countryCode, price, startDate, null);
+    var pricePlan1 =
+        new PricePlanEntity(
+            1, planCode, countryCode, price.amount(), price.currencyCode(), startDate, null);
     var pricePlan2 =
-        new PricePlan(
+        new PricePlanEntity(
             2,
             "Basic",
             countryCode,
-            new Price(new BigDecimal("40.00"), "SEK"),
+            new BigDecimal("40.00"),
+            "SEK",
             LocalDate.now().minus(1, ChronoUnit.YEARS),
             startDate);
     var pricePlan3 =
-        new PricePlan(3, "Basic", countryCode, new Price(new BigDecimal("50.00"), "SEK"), startDate, null);
+        new PricePlanEntity(
+            3, "Basic", countryCode, new BigDecimal("50.00"), "SEK", startDate, null);
 
     when(pricePlanRepository.findByPlanCode(planCode))
         .thenReturn(Flux.just(pricePlan1, pricePlan2, pricePlan3));
@@ -179,17 +172,54 @@ class PricePlanResourceTest {
         .exchange()
         .expectStatus()
         .isOk()
-        .expectBodyList(PricePlan.class);
+        .expectBodyList(PricePlan.class)
+        .hasSize(2);
+  }
+
+  @Test
+  void testGetAllPricePlanIncludingInactiveOns() {
+    var pricePlan1 =
+            new PricePlanEntity(
+                    1, planCode, countryCode, price.amount(), price.currencyCode(), startDate, null);
+    var pricePlan2 =
+            new PricePlanEntity(
+                    2,
+                    "Basic",
+                    countryCode,
+                    new BigDecimal("40.00"),
+                    "SEK",
+                    LocalDate.now().minus(1, ChronoUnit.YEARS),
+                    startDate);
+    var pricePlan3 =
+            new PricePlanEntity(
+                    3, "Basic", countryCode, new BigDecimal("50.00"), "SEK", startDate, null);
+
+    when(pricePlanRepository.findByPlanCode(planCode))
+            .thenReturn(Flux.just(pricePlan1, pricePlan2, pricePlan3));
+    webTestClient
+            .get()
+            .uri(uriBuilder -> uriBuilder.path("/plans/PREMIUM/price-plans")
+                    .queryParam("showInactive", true)
+                    .build()
+            )
+            .exchange()
+            .expectStatus()
+            .isOk()
+            .expectBodyList(PricePlan.class)
+            .hasSize(3);
   }
 
   @Test
   void testUpdatePricePlan() {
-    var currentPricePlan = new PricePlan(1, planCode, countryCode, price, startDate, null);
-    PricePlan inactivatedPricePlan = new PricePlan(currentPricePlan.id(), planCode, countryCode, price, startDate, LocalDate.now());
+    var currentPricePlan = new PricePlanEntity(1, planCode, countryCode, price.amount(), price.currencyCode(), startDate, null);
+    var inactivatedPricePlan =
+        new PricePlanEntity(
+            currentPricePlan.id(), planCode, countryCode, price.amount(), price.currencyCode(), startDate, LocalDate.now());
     Price newPrice = new Price(new BigDecimal("1.00"), "SEK");
-    var newPricePlan = new PricePlan(0, planCode, countryCode, newPrice, LocalDate.now(), null);
+    var newPricePlan = new PricePlanEntity(0, planCode, countryCode, newPrice.amount(), newPrice.currencyCode(), LocalDate.now(), null);
 
-    when(pricePlanRepository.findActiveByPlanCodeAndCountryCode(planCode, countryCode)).thenReturn(Mono.just(currentPricePlan));
+    when(pricePlanRepository.findByPlanCodeAndCountryCodeAndEndDateIsNull(planCode, countryCode))
+        .thenReturn(Mono.just(currentPricePlan));
     when(pricePlanRepository.save(inactivatedPricePlan)).thenReturn(Mono.just(currentPricePlan));
     when(pricePlanRepository.save(newPricePlan)).thenReturn(Mono.just(currentPricePlan));
     webTestClient
@@ -206,7 +236,8 @@ class PricePlanResourceTest {
   void shouldReturnNotFoundWhenUpdatePricePlanNotFound() {
     Price newPrice = new Price(new BigDecimal("1.00"), "SEK");
 
-    when(pricePlanRepository.findActiveByPlanCodeAndCountryCode(planCode, countryCode)).thenReturn(Mono.empty());
+    when(pricePlanRepository.findByPlanCodeAndCountryCodeAndEndDateIsNull(planCode, countryCode))
+        .thenReturn(Mono.empty());
     webTestClient
         .put()
         .uri("/plans/PREMIUM/price-plans/country/SE")
@@ -217,7 +248,9 @@ class PricePlanResourceTest {
   }
 
   @ParameterizedTest
-  @CsvSource(value = {"-1:SEK", "-10:SEK", "-100:BRL", "10:DOLLAR"}, delimiter = ':')
+  @CsvSource(
+      value = {"-1:SEK", "-10:SEK", "-100:BRL", "10:DOLLAR"},
+      delimiter = ':')
   void shouldReturnBadRequestWhenUpdatePricePlanWithInvalidPrice(String price, String currency) {
     Price newPrice = new Price(new BigDecimal(price), currency);
 
