@@ -20,7 +20,14 @@ public class MediaNowApplication {
 						"(id bigint auto_increment primary key," +
 						"code varchar(10)," +
 						"name VARCHAR(255)," +
-						"description VARCHAR(255))")
+						"description VARCHAR(255));" +
+						"CREATE TABLE PicePlan " +
+						"(id bigint auto_increment primary key," +
+						"plan_code varchar(10)," +
+						"country_code varchar(2)," +
+						"price numeric(20,2)," +
+						"start_date date," +
+						"end_date date);")
 				.fetch()
 				.all()
 				.collectList()
