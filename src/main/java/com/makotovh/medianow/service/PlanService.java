@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Optional;
+
 @Service
 @AllArgsConstructor
 public class PlanService {
@@ -20,14 +22,19 @@ public class PlanService {
     private final PricePlanRepository pricePlanRepository;
 
     public Mono<Plan> createPlan(PlanCreateRequest newPlan) {
-    return planRepository.findByCode(newPlan.code())
-            .flux().count()
-            .flatMap(count -> {
-                if (count == 0) {
-                    return planRepository.save(new Plan(0, newPlan.code(), newPlan.name(), newPlan.description()));
-                }
-                return Mono.error(new PlanAlreadyExistsException(newPlan.code()));
-            });
+    return verifyPlanAlreadyExists(newPlan.code())
+            .flatMap(aVoid -> planRepository.save(new Plan(0, newPlan.code(), newPlan.name(), newPlan.description())));
+    }
+
+    private Mono<Optional<Void>> verifyPlanAlreadyExists(String planCode) {
+        return planRepository.findByCode(planCode)
+                .flux().count()
+                .flatMap(count -> {
+                    if (count > 0) {
+                        return Mono.error(new PlanAlreadyExistsException(planCode));
+                    }
+                    return Mono.just(Optional.empty());
+                });
     }
 
     public Mono<Plan> get(String planCode) {

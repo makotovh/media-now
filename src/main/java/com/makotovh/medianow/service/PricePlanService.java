@@ -12,6 +12,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -25,32 +26,31 @@ public class PricePlanService {
     return planRepository
         .findByCode(planCode)
         .switchIfEmpty(Mono.error(new PlanNotFoundException(planCode)))
-        .flatMap(
-            plan ->
-                pricePlanRepository
-                    .findByPlanCodeAndCountryCodeAndEndDateIsNull(planCode, pricePlanRequest.countryCode())
-                    .flux()
-                    .count()
-                    .flatMap(
-                        count -> {
-                          if (count == 0) {
-                            return pricePlanRepository
-                                .save(
-                                    new PricePlanEntity(
-                                        0,
-                                        planCode,
-                                        pricePlanRequest.countryCode(),
-                                        pricePlanRequest.price().amount(),
-                                        pricePlanRequest.price().currencyCode(),
-                                        startDate,
-                                        null))
-                                .map(this::toPricePlan);
-                          } else {
-                            return Mono.error(
-                                new PricePlanAlreadyExistsException(
-                                    planCode, pricePlanRequest.countryCode()));
-                          }
-                        }));
+        .flatMap(plan -> verifyAlreadyExistsActivePricePlan(planCode, pricePlanRequest))
+        .flatMap(avoid -> pricePlanRepository.save(
+                new PricePlanEntity(
+                        0,
+                        planCode,
+                        pricePlanRequest.countryCode(),
+                        pricePlanRequest.price().amount(),
+                        pricePlanRequest.price().currencyCode(),
+                        startDate,
+                        null))
+                .map(this::toPricePlan));
+  }
+
+  private Mono<Optional<Void>> verifyAlreadyExistsActivePricePlan(String planCode, PricePlanRequest pricePlanRequest) {
+    return pricePlanRepository
+        .findByPlanCodeAndCountryCodeAndEndDateIsNull(planCode, pricePlanRequest.countryCode())
+        .flux()
+        .count()
+        .flatMap(count -> {
+          if (count > 0) {
+            return Mono.error(
+                new PricePlanAlreadyExistsException(planCode, pricePlanRequest.countryCode()));
+          }
+          return Mono.just(Optional.empty());
+        });
   }
 
   public Flux<PricePlan> findByPlanCode(String planCode) {
@@ -84,7 +84,13 @@ public class PricePlanService {
   public Mono<PricePlan> createNewPricePlanWithNewPrice(PricePlan pricePlan, Price newPrice) {
     var newPricePlan =
         new PricePlanEntity(
-            0, pricePlan.planCode(), pricePlan.countryCode(), newPrice.amount(), newPrice.currencyCode(), LocalDate.now(), null);
+            0,
+            pricePlan.planCode(),
+            pricePlan.countryCode(),
+            newPrice.amount(),
+            newPrice.currencyCode(),
+            LocalDate.now(),
+            null);
     return pricePlanRepository.save(newPricePlan).map(this::toPricePlan);
   }
 
@@ -99,6 +105,8 @@ public class PricePlanService {
   }
 
   public Flux<PricePlan> findByPlanCodeAndCountryCode(String planCode, String countryCode) {
-    return pricePlanRepository.findByPlanCodeAndCountryCode(planCode, countryCode).map(this::toPricePlan);
+    return pricePlanRepository
+        .findByPlanCodeAndCountryCode(planCode, countryCode)
+        .map(this::toPricePlan);
   }
 }
