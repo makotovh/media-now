@@ -20,7 +20,10 @@ import reactor.core.publisher.Mono;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
+import static java.util.stream.Collectors.toList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -184,6 +187,64 @@ class PricePlanResourceTest {
             .expectStatus()
             .isOk()
             .expectBodyList(PricePlan.class)
+            .hasSize(3);
+  }
+
+  @Test
+  void shouldFilterPricePlanByRangeOfDates() {
+    var startDate1 = LocalDate.of(2010, 1, 1);
+    var endDate1 = LocalDate.of(2020, 12, 31);
+
+    var startDate2 = LocalDate.of(2020, 4, 1);
+
+    var startDate3 = LocalDate.of(2020, 12, 31);
+    var endDate3 = LocalDate.of(2030, 12, 31);
+
+    var startDate4 = LocalDate.of(2011, 12, 31);
+    var endDate4 = LocalDate.of(2012, 1, 1);
+
+    var startDate5 = LocalDate.of(2012, 1, 1);
+
+    var startDate6 = LocalDate.of(2019, 12, 31);
+    var endDate6 = LocalDate.of(2021, 1, 1);
+    var pricePlan1 =
+            new PricePlanEntity(
+                    1, planCode, countryCode, price.amount(), price.currencyCode(), startDate1, endDate1);
+    var pricePlan2 =
+            new PricePlanEntity(
+                    2,
+                    "PREMIUM",
+                    countryCode,
+                    new BigDecimal("40.00"),
+                    "SEK",
+                    startDate2,
+                    null);
+    var pricePlan3 =
+            new PricePlanEntity(
+                    3, "PREMIUM", countryCode, price.amount(), price.currencyCode(), startDate3, endDate3);
+    var pricePlan4 =
+            new PricePlanEntity(
+                    4, "PREMIUM", countryCode, price.amount(), price.currencyCode(), startDate4, endDate4);
+    var pricePlan5 =
+            new PricePlanEntity(
+                    5, "PREMIUM", countryCode, price.amount(), price.currencyCode(), startDate5, null);
+    var pricePlan6 =
+            new PricePlanEntity(
+                    6, "PREMIUM", countryCode, price.amount(), price.currencyCode(), startDate6, endDate6);
+
+    when(pricePlanRepository.findByPlanCode(planCode))
+            .thenReturn(Flux.just(pricePlan1, pricePlan2, pricePlan3, pricePlan4, pricePlan5, pricePlan6));
+    webTestClient
+            .get()
+            .uri(uriBuilder -> uriBuilder.path("/plans/PREMIUM/price-plans/years/2020")
+                    .build()
+            )
+            .exchange()
+            .expectStatus()
+            .isOk()
+            .expectBodyList(PricePlan.class)
+            .value(pricePlans -> assertThat(pricePlans.stream().map(PricePlan::id).collect(toList()))
+                    .isEqualTo(List.of(1L, 2L, 3L)))
             .hasSize(3);
   }
 

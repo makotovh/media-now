@@ -22,4 +22,14 @@ public record PricePlan(@Id long id,
         }
         return LocalDate.now().isBefore(endDate);
     }
+
+    public boolean isStartOrEndInYear(int year) {
+        if (startDate.getYear() == year) {
+            return true;
+        }
+        if (endDate == null) {
+            return false;
+        }
+        return endDate.getYear() == year;
+    }
 }

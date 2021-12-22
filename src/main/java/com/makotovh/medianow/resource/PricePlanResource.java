@@ -49,15 +49,27 @@ public class PricePlanResource {
   @ApiResponses(value = {
           @ApiResponse(responseCode = "200", description = "Found the Price Plans",
                   content = { @Content(mediaType = "application/json",
-                          schema = @Schema(implementation = Long.class)) }),
-          @ApiResponse(responseCode = "404", description = "Plan not found",
-                  content = @Content) })
+                          schema = @Schema(implementation = Long.class)) })})
   public Flux<PricePlan> findPricePlanByCode(
       @PathVariable("plan-code") String planCode,
       @RequestParam(value = "showInactive", required = false, defaultValue = "false") Boolean showInactive) {
     return pricePlanService
         .findByPlanCode(planCode)
         .filter(pricePlan -> showInactive || pricePlan.isActive());
+  }
+
+  @GetMapping("/years/{year}")
+  @Operation(summary = "Get the Price plans created or ended in a given year")
+  @ApiResponses(value = {
+          @ApiResponse(responseCode = "200", description = "Found the Price Plans",
+                  content = { @Content(mediaType = "application/json",
+                          schema = @Schema(implementation = Long.class)) })})
+  public Flux<PricePlan> findPricePlanByYearOfModification(
+          @PathVariable("plan-code") String planCode,
+          @PathVariable("year") int year) {
+    return pricePlanService
+            .findByPlanCode(planCode)
+            .filter(pricePlan -> pricePlan.isStartOrEndInYear(year));
   }
 
   @PutMapping("/country/{country-code}")
@@ -80,9 +92,7 @@ public class PricePlanResource {
   @ApiResponses(value = {
           @ApiResponse(responseCode = "200", description = "Found the Price Plans",
                   content = { @Content(mediaType = "application/json",
-                          schema = @Schema(implementation = Long.class)) }),
-          @ApiResponse(responseCode = "404", description = "Plan not found",
-                  content = @Content) })
+                          schema = @Schema(implementation = Long.class)) })})
   public Flux<PricePlan> getPricePlanByCountry(
       @PathVariable("plan-code") String planCode,
       @PathVariable("country-code") String countryCode,
