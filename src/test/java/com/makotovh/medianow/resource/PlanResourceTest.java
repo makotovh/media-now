@@ -170,7 +170,7 @@ class PlanResourceTest {
         webTestClient.delete()
                 .uri("/plans/TEST")
                 .exchange()
-                .expectStatus().isOk();
+                .expectStatus().isNoContent();
     }
 
     @Test
